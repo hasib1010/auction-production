@@ -1,11 +1,7 @@
 import { z } from "zod";
 
 // enums
-export const AuctionStatusEnum = z.enum([
-  "Upcoming",
-  "Live",
-  "Closed",
-]);
+export const AuctionStatusEnum = z.enum(["Upcoming", "Live", "Closed"]);
 
 export const loginSchema = z.object({
   email: z.email({
@@ -69,9 +65,14 @@ export const attachCardSchema = z.object({
   paymentMethodId: z.string().min(1, "Payment Method ID is required"),
 });
 
-export const setupIntentSchema = z.object({
-  customerId: z.string().min(1, "Customer ID is required"),
-});
+export const setupIntentSchema = z.union([
+  z.object({
+    customerId: z.string().min(1, "Customer ID is required"),
+  }),
+  z.object({
+    userId: z.string().min(1, "User ID is required"),
+  }),
+]);
 
 export const stripeCustomerSchema = z.object({
   email: z.email(),
@@ -102,7 +103,7 @@ export const AuctionCreateSchema = z.object({
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   status: AuctionStatusEnum.optional().default("Upcoming"),
-  imageUrl : z.string().optional(),
+  imageUrl: z.string().optional(),
   termsAndConditions: z.string().optional(), // Terms and conditions for liability
   tags: z.array(TagSchema).optional(),
 });
@@ -149,11 +150,25 @@ export const AuctionItemCreateSchema = z.object({
 
   baseBidPrice: z.number().min(0, "Base bid price must be positive"),
   reservePrice: z.number().min(0, "Reserve price must be positive").optional(),
-  buyersPremium: z.number().min(0).max(100, "Buyer's premium percentage must be between 0 and 100").optional(),
-  taxPercentage: z.number().min(0).max(100, "Tax percentage must be between 0 and 100").optional(),
+  buyersPremium: z
+    .number()
+    .min(0)
+    .max(100, "Buyer's premium percentage must be between 0 and 100")
+    .optional(),
+  taxPercentage: z
+    .number()
+    .min(0)
+    .max(100, "Tax percentage must be between 0 and 100")
+    .optional(),
   currentBid: z.number().min(0).optional().default(0),
-  estimateMin: z.number().min(0, "Minimum estimate must be positive").optional(),
-  estimateMax: z.number().min(0, "Maximum estimate must be positive").optional(),
+  estimateMin: z
+    .number()
+    .min(0, "Minimum estimate must be positive")
+    .optional(),
+  estimateMax: z
+    .number()
+    .min(0, "Maximum estimate must be positive")
+    .optional(),
   // estimatedPrice: z.number().min(0).optional(),
 
   productImages: z.array(ProductImageSchema).optional(),
@@ -178,5 +193,3 @@ export type LoginData = z.infer<typeof loginSchema>;
 export type AuctionCreateData = z.infer<typeof AuctionCreateSchema>;
 export type AuctionUpdateData = z.infer<typeof AuctionUpdateSchema>;
 export type AuctionResponseData = z.infer<typeof AuctionResponseSchema>;
-
-

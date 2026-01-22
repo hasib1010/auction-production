@@ -14,10 +14,6 @@ export const loginUserService = async (data: LoginData) => {
     throw new Error("Invalid email or password");
   }
 
-  if (!user.isVerified) {
-    throw new Error("User is not verified. Please complete verification first.");
-  }
-
   // Verify password
   const isPasswordValid = await bcrypt.compare(data.password, user.password);
   if (!isPasswordValid) {
@@ -34,7 +30,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.json();
     const validation = loginSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error.issues }, { status: 400 });
+      return NextResponse.json(
+        { error: validation.error.issues },
+        { status: 400 },
+      );
     }
     const data: LoginData = validation.data;
 
@@ -49,6 +48,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
