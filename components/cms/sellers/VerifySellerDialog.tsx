@@ -217,9 +217,7 @@ export default function VerifySellerDialog({
                   >
                     <div className="flex items-center gap-3">
                       <div className="font-medium text-sm">{doc.type}</div>
-                      <Badge variant="outline" className="text-xs">
-                        {doc.status}
-                      </Badge>
+
                       {(doc as any).providedByAdmin && (
                         <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">
                           Admin Upload
