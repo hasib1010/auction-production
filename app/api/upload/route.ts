@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,26 +9,49 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-    // Ensure upload directory exists
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    try {
-        await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-        // Ignore if exists
+    if (!cloudName || !uploadPreset) {
+      console.error("Cloudinary config missing");
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
     }
 
-    // Create unique filename
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-    const filename = `${uniqueSuffix}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
-    const filepath = path.join(uploadDir, filename);
+    // Prepare FormData for Cloudinary
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+    
+    // Use 'active_doc' folder or similar to organize, or just default
+    formData.append("folder", "auction_platform_uploads");
 
-    await writeFile(filepath, buffer);
+    // Upload to Cloudinary
+    // Using 'auto' resource type to handle images, pdfs, etc.
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
 
-    const url = `/uploads/${filename}`;
-    return NextResponse.json({ url });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Cloudinary upload failed:", errorText);
+      throw new Error(`Cloudinary upload failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    return NextResponse.json({ 
+      url: result.secure_url,
+      public_id: result.public_id,
+      format: result.format,
+      original_filename: result.original_filename
+    });
 
   } catch (error) {
     console.error("Upload error:", error);

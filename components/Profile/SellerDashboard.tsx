@@ -432,7 +432,7 @@ const DocumentsTab = ({ user }: { user: any }) => {
 
         <div className="p-6 space-y-4">
           {/* Document Item 1 */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 gap-4">
             <div className="flex items-center gap-3">
               <div
                 className={`p-2 rounded-full border ${isUploaded("Identity") ? "bg-green-50 border-green-200" : "bg-white border-gray-200"}`}
@@ -443,17 +443,17 @@ const DocumentsTab = ({ user }: { user: any }) => {
                   <FileText className="w-5 h-5 text-gray-400" />
                 )}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
                   <h4 className="font-medium text-gray-900">Identity Proof</h4>
                   {getDocStatus("Identity")}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 truncate">
                   Passport or Driver&apos;s License
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-end sm:self-auto">
               {isUploaded("Identity") ? (
                 <>
                   <a
@@ -488,7 +488,7 @@ const DocumentsTab = ({ user }: { user: any }) => {
           </div>
 
           {/* Document Item 2 */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 gap-4">
             <div className="flex items-center gap-3">
               <div
                 className={`p-2 rounded-full border ${isUploaded("ProofOfAddress") ? "bg-green-50 border-green-200" : "bg-white border-gray-200"}`}
@@ -499,19 +499,19 @@ const DocumentsTab = ({ user }: { user: any }) => {
                   <FileText className="w-5 h-5 text-gray-400" />
                 )}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
                   <h4 className="font-medium text-gray-900">
                     Proof of Address
                   </h4>
                   {getDocStatus("ProofOfAddress")}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 truncate">
                   Utility Bill or Bank Statement (Recent)
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-end sm:self-auto">
               {isUploaded("ProofOfAddress") ? (
                 <>
                   <a
