@@ -14,11 +14,21 @@ import {
   Eye,
   Download,
   Plus,
+  Trash2,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import ProfileWrapper from "./ProfileWrapper";
 import { downloadSettlementPDF, viewSettlementPDF } from "@/lib/pdf-settlement";
 import AuctionRequestForm from "../shared/AuctionRequestForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 // Placeholder components for the tabs
 const OverviewTab = () => {
@@ -248,6 +258,8 @@ const DocumentsTab = ({ user }: { user: any }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [activeUploadType, setActiveUploadType] = useState<string>("");
 
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -306,6 +318,27 @@ const DocumentsTab = ({ user }: { user: any }) => {
     }
   };
 
+  const onConfirmDelete = async () => {
+    if (!deleteId) return;
+
+    setLoading(true);
+    const toastId = toast.loading("Deleting document...");
+
+    try {
+      await axios.delete(`/api/seller/documents/${deleteId}`);
+      await fetchDocuments();
+      toast.success("Document deleted", { id: toastId });
+      setDeleteId(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete document", { id: toastId });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDoc = (type: string) => documents.find((d) => d.type === type);
+
   const getDocStatus = (type: string) => {
     const doc = documents.find((d) => d.type === type);
     if (!doc) return null;
@@ -335,6 +368,34 @@ const DocumentsTab = ({ user }: { user: any }) => {
         accept="image/*,.pdf"
         onChange={handleFileChange}
       />
+
+      <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this document? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteId(null)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={onConfirmDelete}
+              disabled={loading}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {user?.sellerStatus !== "Approved" && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
@@ -392,14 +453,38 @@ const DocumentsTab = ({ user }: { user: any }) => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => handleUploadClick("Identity")}
-              disabled={loading || isUploaded("Identity")}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Upload className="w-4 h-4" />
-              {isUploaded("Identity") ? "Uploaded" : "Upload"}
-            </button>
+            <div className="flex items-center gap-2">
+              {isUploaded("Identity") ? (
+                <>
+                  <a
+                    href={getDoc("Identity")?.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-blue-600"
+                  >
+                    <Eye className="w-4 h-4" /> View
+                  </a>
+                  {user?.sellerStatus !== "Approved" && (
+                    <button
+                      onClick={() => setDeleteId(getDoc("Identity")?.id || "")}
+                      disabled={loading}
+                      className="p-1.5 bg-white border border-gray-300 rounded hover:bg-red-50 text-red-500 disabled:opacity-50"
+                      title="Delete Document"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  onClick={() => handleUploadClick("Identity")}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Upload className="w-4 h-4" /> Upload
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Document Item 2 */}
@@ -426,14 +511,40 @@ const DocumentsTab = ({ user }: { user: any }) => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => handleUploadClick("ProofOfAddress")}
-              disabled={loading || isUploaded("ProofOfAddress")}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Upload className="w-4 h-4" />
-              {isUploaded("ProofOfAddress") ? "Uploaded" : "Upload"}
-            </button>
+            <div className="flex items-center gap-2">
+              {isUploaded("ProofOfAddress") ? (
+                <>
+                  <a
+                    href={getDoc("ProofOfAddress")?.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-blue-600"
+                  >
+                    <Eye className="w-4 h-4" /> View
+                  </a>
+                  {user?.sellerStatus !== "Approved" && (
+                    <button
+                      onClick={() =>
+                        setDeleteId(getDoc("ProofOfAddress")?.id || "")
+                      }
+                      disabled={loading}
+                      className="p-1.5 bg-white border border-gray-300 rounded hover:bg-red-50 text-red-500 disabled:opacity-50"
+                      title="Delete Document"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  onClick={() => handleUploadClick("ProofOfAddress")}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Upload className="w-4 h-4" /> Upload
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -496,14 +607,26 @@ const DocumentsTab = ({ user }: { user: any }) => {
                         </p>
                       </div>
                     </div>
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 text-sm hover:underline"
-                    >
-                      View
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 text-sm hover:underline"
+                      >
+                        View
+                      </a>
+                      {user?.sellerStatus !== "Approved" && (
+                        <button
+                          onClick={() => setDeleteId(doc.id)}
+                          disabled={loading}
+                          className="p-1 hover:bg-red-50 rounded text-red-500 disabled:opacity-50"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
             </div>
