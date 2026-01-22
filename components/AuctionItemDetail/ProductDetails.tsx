@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { cleanLotNumber, formatLotNumber } from '@/utils/lotNumber';
 import LotNavigation from './LotNavigation';
 
@@ -196,8 +196,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   const handlePlaceBid = async () => {
     if (!user) {
       toast.error('Please login to place a bid', {
-        autoClose: 4000,
-        pauseOnHover: false,
+        duration: 4000,
       });
       router.push('/login');
       return;
@@ -206,8 +205,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     const bidValue = parseFloat(bidAmount);
     if (isNaN(bidValue) || bidValue < nextMinBid) {
       toast.error(`Bid must be at least ${formatCurrency(nextMinBid)}`, {
-        autoClose: 4000,
-        pauseOnHover: false,
+        duration: 4000,
       });
       return;
     }
@@ -224,8 +222,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         amount: bidValue,
       });
       toast.success('Bid placed successfully!', {
-        autoClose: 4000,
-        pauseOnHover: false,
+        duration: 4000,
       });
       setBidAmount('');
     } catch (error) {
@@ -234,8 +231,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         (error as { response?: { data?: { error?: string } } }).response?.data?.error ||
         'Failed to place bid';
       toast.error(message, {
-        autoClose: 4000,
-        pauseOnHover: false,
+        duration: 4000,
       });
     } finally {
       setIsPlacingBid(false);

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { apiClient } from "@/lib/fetcher";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   Home,
   Hammer,
@@ -64,7 +64,9 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
-      toast.error("Logout failed");
+      toast.error("Logout failed", {
+        duration: 4000,
+      });
     }
   };
 
@@ -389,7 +391,6 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
           <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>
       </div>
-      <Toaster />
     </div>
   );
 }

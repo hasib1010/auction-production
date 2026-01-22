@@ -4,7 +4,6 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/QueryProvider";
 import { UserProvider } from "@/contexts/UserContext";
-import ToastProvider from "@/components/ToastProvider";
 import { Toaster } from "react-hot-toast";
 import UserNotificationListener from "@/components/UserNotificationListener";
 
@@ -44,7 +43,6 @@ export default function RootLayout({
         <UserProvider>
           <UserNotificationListener />
           <QueryProvider>{children}</QueryProvider>
-          <ToastProvider />
           <Toaster 
             position="top-right"
             toastOptions={{
@@ -57,6 +55,7 @@ export default function RootLayout({
               top: 20,
               right: 20,
             }}
+            gutter={8}
           />
         </UserProvider>
       </body>

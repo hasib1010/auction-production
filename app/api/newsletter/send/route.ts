@@ -10,6 +10,7 @@ const SendNewsletterSchema = z.object({
   subject: z.string().min(1, 'Subject is required'), // Required for general_news
   content: z.string().min(1, 'Content is required'), // Required for general_news
   imageUrl: z.string().optional(),
+  imageUrls: z.array(z.string()).optional(),
   readMoreUrl: z.string().optional(), // For general_news
 });
 
@@ -123,6 +124,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 auctionName: auction.name,
                 auctionDescription: auction.description,
                 auctionImageUrl: auction.imageUrl || data.imageUrl || undefined,
+                auctionImageUrls: data.imageUrls || (data.imageUrl ? [data.imageUrl] : undefined),
                 startDate: auction.startDate?.toISOString(),
                 endDate: auction.endDate?.toISOString(),
                 location: auction.location,
@@ -139,6 +141,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 subject: data.subject,
                 content: data.content,
                 imageUrl: data.imageUrl,
+                imageUrls: data.imageUrls || (data.imageUrl ? [data.imageUrl] : undefined),
                 readMoreUrl: data.readMoreUrl,
                 unsubscribeUrl,
               });

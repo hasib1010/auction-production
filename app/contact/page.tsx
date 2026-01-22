@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
 import { Send, MessageCircle } from 'lucide-react';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import PremiumLoader from '@/components/shared/PremiumLoader';
 
 /**
@@ -49,16 +49,14 @@ function ContactPageContent() {
     
     if (!formData.name || !formData.email || !formData.message) {
       toast.error('Please fill in all required fields', {
-        position: "top-right",
-        autoClose: 3000,
+        duration: 3000,
       });
       return;
     }
 
     if (formData.message.length < 10) {
       toast.error('Message must be at least 10 characters long', {
-        position: "top-right",
-        autoClose: 3000,
+        duration: 3000,
       });
       return;
     }
@@ -78,8 +76,7 @@ function ContactPageContent() {
       await apiClient.post('/contact', trimmedData);
       
       toast.success('Thank you for contacting us! We will get back to you soon.', {
-        position: "top-right",
-        autoClose: 5000,
+        duration: 5000,
       });
       
       // Reset form
@@ -114,9 +111,7 @@ function ContactPageContent() {
       }
       
       toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-        pauseOnHover: false,
+        duration: 4000,
       });
     } finally {
       setIsSubmitting(false);

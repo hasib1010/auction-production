@@ -50,7 +50,7 @@ export default function Step3({
         Billing Address
       </h2>
       <div className="space-y-4">
-        <div>
+        <div className="px-2">
           <label
             htmlFor="billingCountry"
             className="text-lg font-semibold text-[#0E0E0E] block mb-2"
@@ -77,7 +77,7 @@ export default function Step3({
             <p className="text-red-500 text-sm mt-1">{errors.billingCountry}</p>
           )}
         </div>
-        <div>
+        <div className="px-2">
           <label
             htmlFor="billingAddressLine1"
             className="text-lg font-semibold text-[#0E0E0E] block mb-2"
@@ -115,7 +115,7 @@ export default function Step3({
           />
         </div>
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="md:w-1/2 w-full">
+          <div className="md:w-1/2 w-full px-2 mb-0 lg:mb-1">
             <label
               htmlFor="billingCity"
               className="text-lg font-semibold text-[#0E0E0E] mb-2 block"
@@ -133,7 +133,7 @@ export default function Step3({
               <p className="text-red-500 text-sm mt-1">{errors.billingCity}</p>
             )}
           </div>
-          <div className="md:w-1/2 w-full">
+          <div className="md:w-1/2 w-full px-2 mb-0 lg:mb-1">
             <label
               htmlFor="billingPostcode"
               className="text-lg font-semibold text-[#0E0E0E] mb-2 block"

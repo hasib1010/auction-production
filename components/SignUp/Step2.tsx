@@ -77,7 +77,7 @@ export default function Step2({
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 px-2 gap-4 mb-4">
           <div>
             <label
               htmlFor="firstName"
@@ -90,7 +90,8 @@ export default function Step2({
               type="text"
               value={formData.firstName}
               onChange={(e) => handleInputChange("firstName", e.target.value)}
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent mt-2 text-sm sm:text-base"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-6 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2  focus:ring-purple-300 focus:border-transparent mt-2 text-sm sm:text-base"
+              // className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2  focus:ring-purple-300 focus:border-transparent mt-2 text-sm sm:text-base"
             />
             {errors.firstName && (
               <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
@@ -130,7 +131,7 @@ export default function Step2({
             )}
           </div>
         </div>
-        <div>
+        <div className="px-2">
           <label
             htmlFor="email"
             className="text-sm md:text-base lg:text-lg xl:text-lg font-semibold text-[#0E0E0E] block"

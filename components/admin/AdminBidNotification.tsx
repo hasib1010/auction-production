@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { pusherClient } from '@/lib/pusher-client';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 
 interface BidNotificationData {
   amount: number;
@@ -50,15 +50,16 @@ export default function AdminBidNotification() {
     channel.bind('new-bid', (data: BidNotificationData) => {
       console.log("AdminBidNotification: Received new-bid event", data);
       
-      toast.info(
+      toast(
         <div>
           <strong>New Bid on {data.auctionItemName}</strong>
           <br />
           £{data.amount} by {data.userName}
         </div>,
         {
-          autoClose: 4000,
-          pauseOnHover: false,
+          duration: 4000,
+          position: 'top-right',
+          icon: 'ℹ️',
         }
       );
       
@@ -87,8 +88,8 @@ export default function AdminBidNotification() {
           Invoice {data.invoiceNumber} for {data.auctionName} - £{data.totalAmount.toFixed(2)}
         </div>,
         {
-          autoClose: 4000,
-          pauseOnHover: false,
+          duration: 4000,
+          position: 'top-right',
         }
       );
     });
@@ -101,8 +102,8 @@ export default function AdminBidNotification() {
           {data.userName} paid invoice {data.invoiceNumber} - £{data.totalAmount.toFixed(2)}
         </div>,
         {
-          autoClose: 4000,
-          pauseOnHover: false,
+          duration: 4000,
+          position: 'top-right',
         }
       );
       

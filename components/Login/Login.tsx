@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,9 @@ export default function Login() {
   const [redirecting, setRedirecting] = useState(false);
 
   const router = useRouter();
+
+  const lastErrorRef = useRef("");
+  const lastErrorTimeRef = useRef(0);
 
   const toggleShow = () => setShowPassword((show) => !show);
 
@@ -87,18 +90,32 @@ export default function Login() {
   useEffect(() => {
     if (redirecting) {
       // Dismiss all toasts when redirecting
-      const timer = setTimeout(() => {
+      toast.dismiss();
+      // Reset error tracking
+      lastErrorRef.current = "";
+      lastErrorTimeRef.current = 0;
+      return () => {
         toast.dismiss();
-      }, 100);
-      return () => clearTimeout(timer);
+      };
     }
   }, [redirecting]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      toast.dismiss();
+    };
+  }, []);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!accepted) {
-      toast.error("Please accept terms and conditions");
+      const toastId = `login-terms-error-${Date.now()}`;
+      toast.error("Please accept terms and conditions", {
+        id: toastId,
+        duration: 3000,
+      });
       return;
     }
     setError("");
@@ -127,9 +144,13 @@ export default function Login() {
       setContextUser(contextUser);
       setUser(response.user);
 
+      // Reset error tracking on success
+      lastErrorRef.current = "";
+      lastErrorTimeRef.current = 0;
+
       // Show success toast with shorter duration
-      toast.success("Login successful!", {
-        duration: 2000, // Shorter duration
+      const toastId = toast.success("Login successful!", {
+        duration: 2000,
       });
 
       // Show premium loader
@@ -146,15 +167,15 @@ export default function Login() {
       }
 
       // Dismiss all toasts before redirecting to prevent them from persisting
-      setTimeout(() => {
-        toast.dismiss();
-      }, 100);
+      toast.dismiss(toastId);
+      toast.dismiss(); // Dismiss all toasts as backup
 
       // Additional small delay to ensure everything is ready
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // Redirect based on verification status and account type
+      // Redirect logic
       if (!response.user.isVerified) {
+        // Handle unverified user redirect
         router.push("/add-card");
       } else if (response.user.accountType === "Admin") {
         router.push("/cms/pannel");
@@ -175,11 +196,48 @@ export default function Login() {
         errorMessage = error;
       }
 
-      toast.error(errorMessage);
+      // Check specifically for unverified user error
+      if (
+        errorMessage ===
+          "User is not verified. Please complete verification first." ||
+        errorMessage.includes("not verified") ||
+        errorMessage.includes("complete verification")
+      ) {
+        // Specific handling for this error
+        toast.error("Account not verified. Redirecting to verification...", {
+          duration: 3000,
+        });
+        setRedirecting(true);
+        setTimeout(() => {
+          router.push("/add-card");
+        }, 1500);
+        return;
+      }
+
+      // Prevent duplicate toasts - only show if it's a different error or more than 2 seconds have passed
+      const now = Date.now();
+      const isDuplicate =
+        lastErrorRef.current === errorMessage &&
+        now - lastErrorTimeRef.current < 2000;
+
+      if (!isDuplicate) {
+        lastErrorRef.current = errorMessage;
+        lastErrorTimeRef.current = now;
+
+        // Use a unique toast ID to prevent duplicates
+        const toastId = `login-error-${errorMessage}-${now}`;
+        toast.error(errorMessage, {
+          id: toastId,
+          duration: 4000,
+        });
+      }
+
       setError(errorMessage);
       setRedirecting(false);
     } finally {
-      setLoading(false);
+      if (!redirecting) {
+        setLoading(false);
+      }
     }
   };
 

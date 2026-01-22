@@ -36,7 +36,9 @@ export default function Step5({
     event.preventDefault();
 
     if (!stripe || !elements) {
-      toast.error("Stripe not initialized");
+      toast.error("Stripe not initialized", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -67,7 +69,14 @@ export default function Step5({
           { withCredentials: true }
         );
         console.log("Card attached:", res.data);
-        toast.success("Account created successfully!");
+        const toastId = toast.success("Account created successfully!", {
+          duration: 2000,
+        });
+        // Dismiss toast before redirect
+        setTimeout(() => {
+          toast.dismiss(toastId);
+          toast.dismiss(); // Dismiss all as backup
+        }, 100);
         // Call the parent onSubmit to handle redirect
         onSubmit();
       } else {
@@ -76,11 +85,17 @@ export default function Step5({
     } catch (error) {
       console.error("Card attachment error:", error);
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || error.message);
+        toast.error(error.response?.data?.message || error.message, {
+          duration: 4000,
+        });
       } else if (error instanceof Error) {
-        toast.error(error.message);
+        toast.error(error.message, {
+          duration: 4000,
+        });
       } else {
-        toast.error("Card attachment failed");
+        toast.error("Card attachment failed", {
+          duration: 4000,
+        });
       }
     } finally {
       setIsProcessing(false);

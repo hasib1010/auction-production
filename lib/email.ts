@@ -668,6 +668,7 @@ export function generateUpcomingAuctionNewsletterHTML(params: {
   auctionName: string;
   auctionDescription?: string;
   auctionImageUrl?: string;
+  auctionImageUrls?: string[]; // Add support for multiple images
   startDate?: string;
   endDate?: string;
   location?: string;
@@ -680,6 +681,7 @@ export function generateUpcomingAuctionNewsletterHTML(params: {
     auctionName,
     auctionDescription,
     auctionImageUrl,
+    auctionImageUrls,
     startDate,
     endDate,
     location,
@@ -687,6 +689,10 @@ export function generateUpcomingAuctionNewsletterHTML(params: {
     auctionUrl,
     unsubscribeUrl,
   } = params;
+  
+  // Use either the single image or the first of the array as main image if no specific single image provided
+  const mainImage = auctionImageUrl || (auctionImageUrls && auctionImageUrls.length > 0 ? auctionImageUrls[0] : undefined);
+  const additionalImages = auctionImageUrls?.filter(url => url !== mainImage) || [];
   
   const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
   const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || 'N/A';
@@ -723,9 +729,17 @@ export function generateUpcomingAuctionNewsletterHTML(params: {
         <p style="font-size: 16px;">We're excited to announce an upcoming auction that might interest you!</p>
         
         <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9F13FB;">
-          ${auctionImageUrl ? `
+          ${mainImage ? `
           <div style="text-align: center; margin-bottom: 15px;">
-            <img src="${auctionImageUrl}" alt="${auctionName}" style="max-width: 100%; height: auto; border-radius: 8px; max-height: 250px; object-fit: cover;">
+            <img src="${mainImage}" alt="${auctionName}" style="max-width: 100%; height: auto; border-radius: 8px; max-height: 250px; object-fit: cover;">
+          </div>
+          ` : ''}
+
+          ${additionalImages.length > 0 ? `
+          <div style="text-align: center; margin-bottom: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            ${additionalImages.map(img => `
+              <img src="${img}" alt="${auctionName}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px;">
+            `).join('')}
           </div>
           ` : ''}
           
@@ -792,6 +806,7 @@ export function generateGeneralNewsletterHTML(params: {
   subject: string;
   content: string;
   imageUrl?: string;
+  imageUrls?: string[]; // Add support for multiple images
   readMoreUrl?: string;
   unsubscribeUrl: string;
 }): string {
@@ -800,9 +815,14 @@ export function generateGeneralNewsletterHTML(params: {
     subject,
     content,
     imageUrl,
+    imageUrls,
     readMoreUrl,
     unsubscribeUrl,
   } = params;
+  
+  // Use either the single image or the first of the array as main image if no specific single image provided
+  const mainImage = imageUrl || (imageUrls && imageUrls.length > 0 ? imageUrls[0] : undefined);
+  const additionalImages = imageUrls?.filter(url => url !== mainImage) || [];
   
   const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
   const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || 'N/A';
@@ -823,9 +843,17 @@ export function generateGeneralNewsletterHTML(params: {
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
         <p style="font-size: 16px;">Dear ${userName},</p>
         
-        ${imageUrl ? `
+        ${mainImage ? `
         <div style="text-align: center; margin: 20px 0;">
-          <img src="${imageUrl}" alt="${subject}" style="max-width: 100%; height: auto; border-radius: 8px; max-height: 250px; object-fit: cover;">
+          <img src="${mainImage}" alt="${subject}" style="max-width: 100%; height: auto; border-radius: 8px; max-height: 250px; object-fit: cover;">
+        </div>
+        ` : ''}
+        
+        ${additionalImages.length > 0 ? `
+        <div style="text-align: center; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+          ${additionalImages.map(img => `
+            <img src="${img}" alt="${subject}" style="max-width: 45%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">
+          `).join('')}
         </div>
         ` : ''}
         

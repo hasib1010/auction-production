@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Step1 from "@/components/SignUp/Step1";
 import Step2 from "@/components/SignUp/Step2";
 import Step3 from "@/components/SignUp/Step3";
@@ -7,7 +7,7 @@ import Step4 from "@/components/SignUp/Step4";
 import Step5 from "@/components/SignUp/Step5";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import PaymentWrapper from "@/components/PaymentWrapper/paymentWrapper";
 import { useUser } from "@/lib/useUser";
 import { useUser as useUserContext } from "@/contexts/UserContext";
@@ -56,6 +56,8 @@ export default function Page() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
+  const lastErrorRef = useRef<string>('');
+  const lastErrorTimeRef = useRef<number>(0);
 
   // Check if user is already logged in and redirect
   useEffect(() => {
@@ -266,7 +268,22 @@ export default function Page() {
             errorMessage = error;
           }
 
-          toast.error(errorMessage);
+          // Prevent duplicate toasts - only show if it's a different error or more than 2 seconds have passed
+          const now = Date.now();
+          const isDuplicate = lastErrorRef.current === errorMessage && (now - lastErrorTimeRef.current) < 2000;
+          
+          if (!isDuplicate) {
+            lastErrorRef.current = errorMessage;
+            lastErrorTimeRef.current = now;
+            
+            // Use a unique toast ID to prevent duplicates
+            const toastId = `signup-error-${errorMessage}-${now}`;
+            toast.error(errorMessage, {
+              id: toastId,
+              duration: 4000,
+            });
+          }
+          
           setLoading(false);
           return; // Don't proceed to next step
         } finally {
@@ -339,6 +356,8 @@ export default function Page() {
     <PaymentWrapper key="s5" clientSecret={clientSecret}>
       <Step5
         onSubmit={async () => {
+          // Dismiss all toasts before redirect
+          toast.dismiss();
           // Refresh user context to get the updated session
           await refreshUser();
           // Small delay to ensure context is updated
@@ -384,9 +403,9 @@ export default function Page() {
             <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
               Create an account
             </h1>
-            <p className="text-sm md:text-base text-gray-600 mt-2">
+            {/* <p className="text-sm md:text-base text-gray-600 mt-2">
               Create an account in 5 easy steps
-            </p>
+            </p> */}
           </div>
 
           <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-4 md:p-6 lg:p-10">
@@ -431,9 +450,9 @@ export default function Page() {
             <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900">
               Create an account
             </h1>
-            <p className="text-sm lg:text-base xl:text-lg text-gray-600 mt-2">
+            {/* <p className="text-sm lg:text-base xl:text-lg text-gray-600 mt-2">
               Create an account in 5 easy steps
-            </p>
+            </p> */}
           </div>
 
           <div className="w-full max-w-[680px] mx-auto bg-white rounded-xl shadow-lg p-6 lg:p-8 xl:p-10 2xl:p-12 overflow-x-hidden">
@@ -480,7 +499,6 @@ export default function Page() {
           }}
         />
       </div>
-      <Toaster />
     </div>
   );
 }
