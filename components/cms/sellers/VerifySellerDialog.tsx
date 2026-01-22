@@ -114,7 +114,7 @@ export default function VerifySellerDialog({
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Email</p>
-              <p className="font-semibold">{seller.email}</p>
+              <p className="font-semibold break-all">{seller.email}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">
