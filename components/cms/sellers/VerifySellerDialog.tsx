@@ -57,7 +57,7 @@ export default function VerifySellerDialog({
     bankSortCode: seller?.bankSortCode || "",
     phone: seller?.phone || "",
   });
-
+  //checking seller exist or not
   if (!seller) {
     return null;
   }
