@@ -58,7 +58,9 @@ export default function VerifySellerDialog({
     phone: seller?.phone || "",
   });
 
-  if (!seller) return null;
+  if (!seller) {
+    return null;
+  }
 
   const handleStatusUpdate = async (status: string) => {
     setLoading(true);
