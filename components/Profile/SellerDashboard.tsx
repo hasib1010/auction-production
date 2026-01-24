@@ -107,6 +107,7 @@ const OverviewTab = () => {
 const BankDetailsTab = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     bankName: "",
     bankAccount: "",
@@ -119,13 +120,18 @@ const BankDetailsTab = () => {
     const fetchProfile = async () => {
       try {
         const res = await axios.get("/api/seller/profile");
-        setFormData({
+        const data = {
           bankName: res.data.bankName || "",
           bankAccount: res.data.bankAccount || "",
           bankSortCode: res.data.bankSortCode || "",
           companyName: res.data.companyName || "",
           taxId: res.data.taxId || "",
-        });
+        };
+        setFormData(data);
+        // If data is empty (new user), start in editing mode
+        if (!data.bankName && !data.bankAccount) {
+          setIsEditing(true);
+        }
       } catch (error) {
         console.error("Error fetching bank details:", error);
       } finally {
@@ -145,8 +151,9 @@ const BankDetailsTab = () => {
     try {
       await axios.patch("/api/seller/profile", formData);
       toast.success("Details updated successfully");
+      setIsEditing(false);
     } catch (error) {
-      toast.error("Failed to update details");
+      console.error("Failed to update details", error);
     } finally {
       setLoading(false);
     }
@@ -154,100 +161,200 @@ const BankDetailsTab = () => {
 
   if (fetching)
     return (
-      <div className="p-12 text-center text-gray-500">Loading details...</div>
+      <div className="p-12 text-center text-gray-500">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        Loading details...
+      </div>
     );
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-gray-200 bg-gray-50/50">
-        <h3 className="text-lg font-bold text-gray-900">
-          Financial Information
-        </h3>
-        <p className="text-sm text-gray-500 mt-1">
-          Manage where you receive your auction proceeds.
-        </p>
-      </div>
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">
-              Company Name (If applicable)
-            </label>
-            <input
-              name="companyName"
-              value={formData.companyName}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-              placeholder="Legal Entity Name"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">
-              VAT / Tax ID
-            </label>
-            <input
-              name="taxId"
-              value={formData.taxId}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-              placeholder="Optional"
-            />
-          </div>
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300">
+      <div className="p-6 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">
+            Financial Information
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage where you receive your auction proceeds.
+          </p>
         </div>
+        {!isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-purple-600 hover:bg-purple-50 rounded-lg transition-colors border border-purple-100"
+          >
+            <FileText className="w-4 h-4" />
+            Edit Info
+          </button>
+        )}
+      </div>
 
-        <div className="pt-4 border-t border-gray-100">
-          <h4 className="font-bold text-gray-900 mb-4">Bank Details</h4>
+      {isEditing ? (
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">
-                Bank Name
+                Company Name (If applicable)
               </label>
               <input
-                name="bankName"
-                value={formData.bankName}
+                name="companyName"
+                value={formData.companyName}
                 onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                placeholder="e.g. Barclays, HSBC"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2 lg:col-span-1">
-              <label className="text-sm font-semibold text-gray-700">
-                Account Number / IBAN
-              </label>
-              <input
-                name="bankAccount"
-                value={formData.bankAccount}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                placeholder="Legal Entity Name"
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">
-                Sort Code / Swift Code
+                VAT / Tax ID
               </label>
               <input
-                name="bankSortCode"
-                value={formData.bankSortCode}
+                name="taxId"
+                value={formData.taxId}
                 onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                placeholder="Optional"
               />
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-end pt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-8 py-2 bg-[#9F13FB] text-white rounded-lg font-bold hover:bg-[#E95AFF] transition-all disabled:opacity-50"
-          >
-            {loading ? "Saving..." : "Update Details"}
-          </button>
+          <div className="pt-4 border-t border-gray-100">
+            <h4 className="font-bold text-gray-900 mb-4">Bank Details</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Bank Name
+                </label>
+                <input
+                  name="bankName"
+                  value={formData.bankName}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                  placeholder="e.g. Barclays, HSBC"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Account Number / IBAN
+                </label>
+                <input
+                  name="bankAccount"
+                  value={formData.bankAccount}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Sort Code / Swift Code
+                </label>
+                <input
+                  name="bankSortCode"
+                  value={formData.bankSortCode}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-6 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-8 py-2 bg-[#9F13FB] text-white rounded-lg font-bold hover:bg-[#E95AFF] transition-all disabled:opacity-50 shadow-md hover:shadow-lg flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="p-6 space-y-8 animate-in fade-in duration-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Company Name
+              </p>
+              <p className="text-gray-900 font-medium text-lg">
+                {formData.companyName || (
+                  <span className="text-gray-300 italic">Not Provided</span>
+                )}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                VAT / Tax ID
+              </p>
+              <p className="text-gray-900 font-medium text-lg">
+                {formData.taxId || (
+                  <span className="text-gray-300 italic">Not Provided</span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-gray-100">
+            <h4 className="text-sm font-bold text-purple-600 mb-6 flex items-center gap-2 uppercase tracking-widest">
+              <CheckCircle className="w-4 h-4" /> Primary Payout Method
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Bank Name
+                </p>
+                <p className="text-gray-900 font-semibold">
+                  {formData.bankName}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Account / IBAN
+                </p>
+                <p className="text-gray-900 font-mono font-medium">
+                  {(formData.bankAccount || "").replace(/.(?=.{4})/g, "*")}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Sort / Swift Code
+                </p>
+                <p className="text-gray-900 font-medium">
+                  {formData.bankSortCode}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50/50 rounded-lg p-4 flex gap-3 items-start border border-blue-100">
+            <Download className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-700">
+              Proceeds from your sales will be transferred to this account
+              within 7-14 days after the auction closes and buyer payment is
+              confirmed.
+            </p>
+          </div>
         </div>
-      </form>
+      )}
     </div>
   );
 };
@@ -821,7 +928,9 @@ export default function SellerDashboard() {
     const tab = searchParams.get("tab");
     if (
       tab &&
-      ["overview", "consignments", "documents", "settlements"].includes(tab)
+      ["overview", "consignments", "documents", "settlements", "bank"].includes(
+        tab,
+      )
     ) {
       setActiveTab(tab);
     }

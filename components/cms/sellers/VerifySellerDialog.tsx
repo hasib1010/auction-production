@@ -18,6 +18,7 @@ interface SellerDocument {
   url: string;
   status: string;
   createdAt: string;
+  providedByAdmin?: boolean;
 }
 
 interface Seller {
@@ -25,7 +26,12 @@ interface Seller {
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
   companyName: string;
+  taxId: string;
+  bankName: string;
+  bankAccount: string;
+  bankSortCode: string;
   sellerStatus: string;
   infoDocuments: SellerDocument[];
 }
@@ -42,6 +48,15 @@ export default function VerifySellerDialog({
   onUpdate,
 }: VerifySellerDialogProps) {
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    companyName: seller?.companyName || "",
+    taxId: seller?.taxId || "",
+    bankName: seller?.bankName || "",
+    bankAccount: seller?.bankAccount || "",
+    bankSortCode: seller?.bankSortCode || "",
+    phone: seller?.phone || "",
+  });
 
   if (!seller) return null;
 
@@ -62,6 +77,28 @@ export default function VerifySellerDialog({
     } catch (error) {
       console.error(error);
       toast.error("An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateDetails = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/cms/sellers/${seller.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editData),
+      });
+
+      if (!res.ok) throw new Error("Failed to update details");
+
+      toast.success("Seller details updated successfully");
+      setIsEditing(false);
+      onUpdate();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update details");
     } finally {
       setLoading(false);
     }
@@ -103,6 +140,21 @@ export default function VerifySellerDialog({
         </DialogHeader>
 
         <div className="space-y-6 my-4">
+          <div className="flex justify-between items-center">
+            <h4 className="font-bold text-gray-900">Seller Information</h4>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (isEditing) handleUpdateDetails();
+                else setIsEditing(true);
+              }}
+              disabled={loading}
+            >
+              {isEditing ? "Save Details" : "Edit Details"}
+            </Button>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500">
@@ -117,10 +169,139 @@ export default function VerifySellerDialog({
               <p className="font-semibold break-all">{seller.email}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">
-                Current Status
-              </p>
-              <Badge>{seller.sellerStatus}</Badge>
+              <p className="text-sm font-medium text-gray-500">Phone</p>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editData.phone}
+                  onChange={(e) =>
+                    setEditData({ ...editData, phone: e.target.value })
+                  }
+                  className="w-full px-2 py-1 border rounded text-sm"
+                />
+              ) : (
+                <p className="font-semibold">{seller.phone || "N/A"}</p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Status</p>
+              <Badge
+                variant={
+                  seller.sellerStatus === "Approved"
+                    ? "default"
+                    : seller.sellerStatus === "Rejected"
+                      ? "destructive"
+                      : "secondary"
+                }
+                className={
+                  seller.sellerStatus === "Approved"
+                    ? "bg-green-600"
+                    : seller.sellerStatus === "Pending"
+                      ? "bg-yellow-500 hover:bg-yellow-600"
+                      : ""
+                }
+              >
+                {seller.sellerStatus}
+              </Badge>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h4 className="font-bold text-gray-900 mb-3">
+              Company & Tax Information
+            </h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Company Name
+                </p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editData.companyName}
+                    onChange={(e) =>
+                      setEditData({ ...editData, companyName: e.target.value })
+                    }
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
+                ) : (
+                  <p className="font-semibold">{seller.companyName || "N/A"}</p>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  VAT / Tax ID
+                </p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editData.taxId}
+                    onChange={(e) =>
+                      setEditData({ ...editData, taxId: e.target.value })
+                    }
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
+                ) : (
+                  <p className="font-semibold">{seller.taxId || "N/A"}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h4 className="font-bold text-gray-900 mb-3">Bank Details</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Bank Name</p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editData.bankName}
+                    onChange={(e) =>
+                      setEditData({ ...editData, bankName: e.target.value })
+                    }
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
+                ) : (
+                  <p className="font-semibold">{seller.bankName || "N/A"}</p>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Account Number / IBAN
+                </p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editData.bankAccount}
+                    onChange={(e) =>
+                      setEditData({ ...editData, bankAccount: e.target.value })
+                    }
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
+                ) : (
+                  <p className="font-semibold">{seller.bankAccount || "N/A"}</p>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Sort Code / Swift Code
+                </p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editData.bankSortCode}
+                    onChange={(e) =>
+                      setEditData({ ...editData, bankSortCode: e.target.value })
+                    }
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
+                ) : (
+                  <p className="font-semibold">
+                    {seller.bankSortCode || "N/A"}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -217,8 +398,10 @@ export default function VerifySellerDialog({
                   >
                     <div className="flex items-center gap-3">
                       <div className="font-medium text-sm">{doc.type}</div>
-
-                      {(doc as any).providedByAdmin && (
+                      <Badge variant="outline" className="text-xs">
+                        {doc.status}
+                      </Badge>
+                      {doc.providedByAdmin && (
                         <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">
                           Admin Upload
                         </Badge>
